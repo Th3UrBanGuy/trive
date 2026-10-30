@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="enc" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1c3f81"/>
+      <stop offset="50%" stop-color="#1e84c6"/>
+      <stop offset="100%" stop-color="#1a8aae"/>
+    </linearGradient>
+    <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5a6b7a"/>
+    </marker>
+    <filter id="sh2" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="600" fill="#f4f7fa"/>
+
+  <text x="480" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#203240">TriVE — Upload Pipeline (Encryption → Erasure → Dedup → Telegram)</text>
+
+  <!-- Input file -->
+  <rect x="30" y="70" width="120" height="80" rx="10" fill="white" stroke="#dbe4ec" filter="url(#sh2)"/>
+  <text x="90" y="98" text-anchor="middle" font-size="11" font-weight="700" fill="#203240">Input File</text>
+  <text x="90" y="116" text-anchor="middle" font-size="9" fill="#5a6b7a">Up to 4GB</text>
+  <text x="90" y="130" text-anchor="middle" font-size="9" fill="#5a6b7a">any MIME type</text>
+  <text x="90" y="144" text-anchor="middle" font-size="9" fill="#5a6b7a">Buffer in memory</text>
+
+  <!-- Arrow -->
+  <line x1="150" y1="110" x2="185" y2="110" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <!-- Chunking -->
+  <rect x="190" y="70" width="140" height="80" rx="10" fill="white" stroke="#dbe4ec" filter="url(#sh2)"/>
+  <text x="260" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#1c3f81">Chunking</text>
+  <text x="260" y="108" text-anchor="middle" font-size="9" fill="#5a6b7a">Split into 20MB</text>
+  <text x="260" y="122" text-anchor="middle" font-size="9" fill="#5a6b7a">N = ceil(size / 20MB)</text>
+  <rect x="205" y="130" width="30" height="14" rx="3" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="220" y="140" text-anchor="middle" font-size="8" fill="#1c3f81">C0</text>
+  <rect x="240" y="130" width="30" height="14" rx="3" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="255" y="140" text-anchor="middle" font-size="8" fill="#1c3f81">C1</text>
+  <rect x="275" y="130" width="30" height="14" rx="3" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="290" y="140" text-anchor="middle" font-size="8" fill="#1c3f81">C2</text>
+
+  <line x1="330" y1="110" x2="365" y2="110" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <!-- Encryption -->
+  <rect x="370" y="70" width="140" height="80" rx="10" fill="url(#enc)" filter="url(#sh2)"/>
+  <text x="440" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="white">AES-256-GCM</text>
+  <text x="440" y="108" text-anchor="middle" font-size="9" fill="white" opacity="0.9">Per-chunk encrypt</text>
+  <text x="440" y="122" text-anchor="middle" font-size="9" fill="white" opacity="0.9">Key: scrypt(APP_SECRET, salt)</text>
+  <text x="440" y="136" text-anchor="middle" font-size="9" fill="white" opacity="0.9">IV: 12 random bytes</text>
+  <text x="440" y="148" text-anchor="middle" font-size="8" fill="white" opacity="0.8">[ciphertext | 16-byte tag]</text>
+
+  <line x1="510" y1="110" x2="545" y2="110" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <!-- Dedup check -->
+  <rect x="550" y="70" width="140" height="80" rx="10" fill="white" stroke="#dbe4ec" filter="url(#sh2)"/>
+  <text x="620" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#1c3f81">Dedup Check</text>
+  <text x="620" y="108" text-anchor="middle" font-size="9" fill="#5a6b7a">SHA-256(enc chunk)</text>
+  <text x="620" y="122" text-anchor="middle" font-size="9" fill="#5a6b7a">Query FileChunk DB</text>
+  <text x="620" y="138" text-anchor="middle" font-size="9" fill="#2a8a4a" font-weight="600">exists? → reuse msg ID</text>
+  <text x="620" y="150" text-anchor="middle" font-size="9" fill="#8a5a1a" font-weight="600">new? → upload</text>
+
+  <line x1="690" y1="110" x2="725" y2="110" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <!-- Telegram upload -->
+  <rect x="730" y="70" width="200" height="80" rx="10" fill="url(#enc)" filter="url(#sh2)"/>
+  <text x="830" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="white">Telegram Upload</text>
+  <text x="830" y="108" text-anchor="middle" font-size="9" fill="white" opacity="0.9">client.sendFile(vault)</text>
+  <text x="830" y="122" text-anchor="middle" font-size="9" fill="white" opacity="0.9">→ message ID stored</text>
+  <text x="830" y="136" text-anchor="middle" font-size="9" fill="white" opacity="0.9">in FileChunk.telegramMessageId</text>
+  <text x="830" y="148" text-anchor="middle" font-size="8" fill="white" opacity="0.8">3 retries · flood-wait handling</text>
+
+  <!-- Erasure coding section -->
+  <rect x="30" y="190" width="900" height="160" rx="12" fill="white" stroke="#dbe4ec" filter="url(#sh2)"/>
+  <text x="50" y="214" font-size="12" font-weight="700" fill="#8a5a1a" letter-spacing="1">ERASURE CODING (only if N ≥ 3 chunks, i.e. file ≥ 60MB)</text>
+  <text x="50" y="228" font-size="9" fill="#5a6b7a">Reed-Solomon GF(2⁸) · ~50% parity overhead · survives missing/corrupt shards</text>
+
+  <!-- Data shards -->
+  <text x="60" y="252" font-size="10" font-weight="600" fill="#1c3f81">Data shards (encrypted chunks, padded to equal size)</text>
+  <rect x="60" y="258" width="80" height="36" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="100" y="280" text-anchor="middle" font-size="10" fill="#1c3f81">D0 (C0)</text>
+  <rect x="148" y="258" width="80" height="36" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="188" y="280" text-anchor="middle" font-size="10" fill="#1c3f81">D1 (C1)</text>
+  <rect x="236" y="258" width="80" height="36" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="276" y="280" text-anchor="middle" font-size="10" fill="#1c3f81">D2 (C2)</text>
+  <rect x="324" y="258" width="80" height="36" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="364" y="280" text-anchor="middle" font-size="10" fill="#1c3f81">D3 (C3)</text>
+  <rect x="412" y="258" width="80" height="36" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="452" y="280" text-anchor="middle" font-size="10" fill="#1c3f81">D4 (C4)</text>
+
+  <!-- Arrow down -->
+  <text x="500" y="282" font-size="9" fill="#5a6b7a">↓ Vandermonde × topInverse = generator matrix</text>
+
+  <!-- Parity shards -->
+  <text x="60" y="312" font-size="10" font-weight="600" fill="#8a5a1a">Parity shards (computed, uploaded as isParity=true)</text>
+  <rect x="60" y="318" width="80" height="24" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="100" y="334" text-anchor="middle" font-size="9" fill="#8a5a1a">P0</text>
+  <rect x="148" y="318" width="80" height="24" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="188" y="334" text-anchor="middle" font-size="9" fill="#8a5a1a">P1</text>
+  <rect x="236" y="318" width="80" height="24" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="276" y="334" text-anchor="middle" font-size="9" fill="#8a5a1a">P2</text>
+  <text x="330" y="334" font-size="9" fill="#5a6b7a">→ uploaded to Telegram as separate messages</text>
+
+  <!-- Manifest section -->
+  <rect x="30" y="380" width="900" height="120" rx="12" fill="white" stroke="#dbe4ec" filter="url(#sh2)"/>
+  <text x="50" y="404" font-size="12" font-weight="700" fill="#1c3f81" letter-spacing="1">MANIFEST + DB PERSISTENCE</text>
+
+  <rect x="50" y="416" width="260" height="70" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="180" y="436" text-anchor="middle" font-size="10" font-weight="600" fill="#203240">File Manifest (JSON)</text>
+  <text x="180" y="452" text-anchor="middle" font-size="9" fill="#5a6b7a">name, mime, size, checksum</text>
+  <text x="180" y="466" text-anchor="middle" font-size="9" fill="#5a6b7a">chunks[]: {msgId, iv, plainSize}</text>
+  <text x="180" y="480" text-anchor="middle" font-size="9" fill="#5a6b7a">dataShards, parityShards</text>
+
+  <line x1="310" y1="451" x2="340" y2="451" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <rect x="345" y="416" width="170" height="70" rx="8" fill="url(#enc)" opacity="0.85"/>
+  <text x="430" y="440" text-anchor="middle" font-size="10" font-weight="600" fill="white">Post to Vault</text>
+  <text x="430" y="456" text-anchor="middle" font-size="9" fill="white" opacity="0.9">text message</text>
+  <text x="430" y="470" text-anchor="middle" font-size="9" fill="white" opacity="0.9">→ manifestMessageId</text>
+  <text x="430" y="482" text-anchor="middle" font-size="8" fill="white" opacity="0.8">enables cross-device rebuild</text>
+
+  <line x1="515" y1="451" x2="545" y2="451" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr2)"/>
+
+  <rect x="550" y="416" width="360" height="70" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="730" y="436" text-anchor="middle" font-size="10" font-weight="600" fill="#203240">Database (Prisma + SQLite)</text>
+  <text x="730" y="452" text-anchor="middle" font-size="9" fill="#5a6b7a">File.create → FileChunk.create × N</text>
+  <text x="730" y="466" text-anchor="middle" font-size="9" fill="#5a6b7a">file.manifestMessageId = posted msg ID</text>
+  <text x="730" y="480" text-anchor="middle" font-size="9" fill="#5a6b7a">Activity.create (upload log)</text>
+
+  <!-- Footer note -->
+  <rect x="30" y="525" width="900" height="55" rx="10" fill="#fff8e8" stroke="#f0d8b8"/>
+  <text x="50" y="545" font-size="10" font-weight="600" fill="#8a5a1a">⚠️ Critical correctness rules (see whatnottodo.md):</text>
+  <text x="50" y="560" font-size="9" fill="#5a6b7a">• Dedup is on encrypted bytes — random IVs mean identical plaintext rarely dedups (design flaw). • Erasure decode MUST use generator matrix, not raw Vandermonde. • Decrypt MUST truncate to plainSize + 16 (GCM tag).</text>
+  <text x="50" y="572" font-size="9" fill="#5a6b7a">• Parity upload failures are silently swallowed → files lose fault tolerance over time (VULNERABILITIES W-5).</text>
+</svg>

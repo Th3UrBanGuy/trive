@@ -1,0 +1,11 @@
+▲ Next.js 16.2.12 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.88.0.4:3000
+- Environments: .env
+✓ Ready in 662ms
+⚠ Slow filesystem detected. The benchmark took 3059ms. If /home/ra726ma/trive/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling proxy ...
+
+○ Compiling / ...
+ PROPFIND /api/dav/ 400 in 19.0s (next.js: 18.9s, proxy.ts: 13ms, application-code: 91ms)

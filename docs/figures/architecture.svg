@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c3f81"/>
+      <stop offset="50%" stop-color="#1e84c6"/>
+      <stop offset="100%" stop-color="#1a8aae"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f4f7fa"/>
+      <stop offset="100%" stop-color="#ebeff2"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5a6b7a"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="720" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="480" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#203240">TriVE — System Architecture</text>
+  <text x="480" y="58" text-anchor="middle" font-size="12" fill="#5a6b7a">Zero-knowledge encrypted cloud storage over Telegram MTProto</text>
+
+  <!-- Browser Layer -->
+  <rect x="40" y="80" width="880" height="90" rx="12" fill="white" stroke="#dbe4ec" filter="url(#shadow)"/>
+  <text x="60" y="102" font-size="11" font-weight="700" fill="#1c3f81" letter-spacing="1">USER'S BROWSER</text>
+  <rect x="60" y="112" width="200" height="46" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="160" y="134" text-anchor="middle" font-size="12" font-weight="600" fill="#203240">Landing Page</text>
+  <text x="160" y="148" text-anchor="middle" font-size="10" fill="#5a6b7a">Marketing + install</text>
+  <rect x="280" y="112" width="200" height="46" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="380" y="134" text-anchor="middle" font-size="12" font-weight="600" fill="#203240">Auth Flow</text>
+  <text x="380" y="148" text-anchor="middle" font-size="10" fill="#5a6b7a">Phone → code → 2FA</text>
+  <rect x="500" y="112" width="200" height="46" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="600" y="134" text-anchor="middle" font-size="12" font-weight="600" fill="#203240">Dashboard</text>
+  <text x="600" y="148" text-anchor="middle" font-size="10" fill="#5a6b7a">25 components</text>
+  <rect x="720" y="112" width="180" height="46" rx="8" fill="#f0f5f9" stroke="#dbe4ec"/>
+  <text x="810" y="134" text-anchor="middle" font-size="12" font-weight="600" fill="#203240">Public Share</text>
+  <text x="810" y="148" text-anchor="middle" font-size="10" fill="#5a6b7a">No auth required</text>
+
+  <!-- Arrow down -->
+  <line x1="480" y1="172" x2="480" y2="195" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="490" y="188" font-size="9" fill="#5a6b7a">HTTPS · cookies</text>
+
+  <!-- Next.js Layer -->
+  <rect x="40" y="200" width="880" height="120" rx="12" fill="white" stroke="#dbe4ec" filter="url(#shadow)"/>
+  <text x="60" y="222" font-size="11" font-weight="700" fill="#1c3f81" letter-spacing="1">NEXT.JS 16 APP ROUTER (port 3000)</text>
+  <text x="60" y="236" font-size="10" fill="#5a6b7a">src/app/page.tsx — single SPA route, views toggled by URL query (?share=, ?admin=1, ?page=terms)</text>
+
+  <rect x="60" y="248" width="125" height="56" rx="8" fill="url(#brandGrad)" opacity="0.9"/>
+  <text x="122" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/auth</text>
+  <text x="122" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">send-code, sign-in, me</text>
+
+  <rect x="195" y="248" width="125" height="56" rx="8" fill="url(#brandGrad)" opacity="0.9"/>
+  <text x="257" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/files</text>
+  <text x="257" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">upload, list, download</text>
+
+  <rect x="330" y="248" width="125" height="56" rx="8" fill="url(#brandGrad)" opacity="0.9"/>
+  <text x="392" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/folders</text>
+  <text x="392" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">create, move, zip</text>
+
+  <rect x="465" y="248" width="125" height="56" rx="8" fill="url(#brandGrad)" opacity="0.9"/>
+  <text x="527" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/share</text>
+  <text x="527" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">create, public, download</text>
+
+  <rect x="600" y="248" width="125" height="56" rx="8" fill="url(#brandGrad)" opacity="0.9"/>
+  <text x="662" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/telegram</text>
+  <text x="662" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">vault init, scan</text>
+
+  <rect x="735" y="248" width="165" height="56" rx="8" fill="#3a4a5c" opacity="0.85"/>
+  <text x="817" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="white">/api/admin</text>
+  <text x="817" y="288" text-anchor="middle" font-size="9" fill="white" opacity="0.9">users, files, shares, db</text>
+
+  <!-- Arrows down to lib -->
+  <line x1="280" y1="322" x2="280" y2="345" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="680" y1="322" x2="680" y2="345" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Lib Layer -->
+  <rect x="40" y="350" width="430" height="130" rx="12" fill="white" stroke="#dbe4ec" filter="url(#shadow)"/>
+  <text x="60" y="372" font-size="11" font-weight="700" fill="#1c3f81" letter-spacing="1">PRISMA + SQLITE</text>
+  <text x="60" y="386" font-size="10" fill="#5a6b7a">db/custom.db</text>
+  <rect x="60" y="396" width="90" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="105" y="415" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">User</text>
+  <rect x="158" y="396" width="90" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="203" y="415" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">Folder</text>
+  <rect x="256" y="396" width="90" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="301" y="415" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">File</text>
+  <rect x="354" y="396" width="100" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="404" y="415" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">FileChunk</text>
+  <rect x="60" y="434" width="100" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="110" y="453" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">ShareLink</text>
+  <rect x="168" y="434" width="90" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="213" y="453" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">ShareItem</text>
+  <rect x="266" y="434" width="90" height="30" rx="6" fill="#e8f0f7" stroke="#cce0ed"/>
+  <text x="311" y="453" text-anchor="middle" font-size="10" font-weight="600" fill="#1c3f81">Activity</text>
+  <text x="255" y="472" text-anchor="middle" font-size="9" fill="#5a6b7a">7 models · tree-structured folders · cascade delete</text>
+
+  <!-- GramJS Layer -->
+  <rect x="490" y="350" width="430" height="130" rx="12" fill="white" stroke="#dbe4ec" filter="url(#shadow)"/>
+  <text x="510" y="372" font-size="11" font-weight="700" fill="#1c3f81" letter-spacing="1">GRAMJS (TELEGRAM MTPROTO)</text>
+  <text x="510" y="386" font-size="10" fill="#5a6b7a">src/lib/telegram-service.ts</text>
+  <rect x="510" y="396" width="120" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="570" y="414" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">uploadChunk</text>
+  <rect x="640" y="396" width="120" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="700" y="414" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">downloadChunk</text>
+  <rect x="770" y="396" width="130" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="835" y="414" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">postManifest</text>
+  <rect x="510" y="432" width="120" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="570" y="450" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">scanVault</text>
+  <rect x="640" y="432" width="120" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="700" y="450" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">initVault</text>
+  <rect x="770" y="432" width="130" height="28" rx="6" fill="#fef3e8" stroke="#f0d8b8"/>
+  <text x="835" y="450" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">deleteMessage</text>
+  <text x="705" y="472" text-anchor="middle" font-size="9" fill="#5a6b7a">InputPeerChannel · StringSession · client cache (5min TTL)</text>
+
+  <!-- Arrow to Telegram -->
+  <line x1="705" y1="482" x2="705" y2="510" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="715" y="500" font-size="9" fill="#5a6b7a">MTProto / TCP</text>
+
+  <!-- Telegram Cloud -->
+  <rect x="390" y="515" width="530" height="150" rx="12" fill="url(#brandGrad)" filter="url(#shadow)"/>
+  <text x="655" y="540" text-anchor="middle" font-size="13" font-weight="700" fill="white">TELEGRAM CLOUD (Data Centers)</text>
+  <text x="655" y="556" text-anchor="middle" font-size="10" fill="white" opacity="0.9">User's private broadcast channel: "TriVE_Storage_Vault"</text>
+
+  <rect x="415" y="570" width="150" height="80" rx="8" fill="white" opacity="0.15"/>
+  <text x="490" y="590" text-anchor="middle" font-size="10" font-weight="600" fill="white">Encrypted Chunks</text>
+  <text x="490" y="606" text-anchor="middle" font-size="9" fill="white" opacity="0.8">20MB blobs</text>
+  <text x="490" y="620" text-anchor="middle" font-size="9" fill="white" opacity="0.8">AES-256-GCM</text>
+  <text x="490" y="634" text-anchor="middle" font-size="9" fill="white" opacity="0.8">+ parity shards</text>
+
+  <rect x="580" y="570" width="150" height="80" rx="8" fill="white" opacity="0.15"/>
+  <text x="655" y="590" text-anchor="middle" font-size="10" font-weight="600" fill="white">File Manifests</text>
+  <text x="655" y="606" text-anchor="middle" font-size="9" fill="white" opacity="0.8">JSON text msgs</text>
+  <text x="655" y="620" text-anchor="middle" font-size="9" fill="white" opacity="0.8">metadata +</text>
+  <text x="655" y="634" text-anchor="middle" font-size="9" fill="white" opacity="0.8">chunk map</text>
+
+  <rect x="745" y="570" width="150" height="80" rx="8" fill="white" opacity="0.15"/>
+  <text x="820" y="590" text-anchor="middle" font-size="10" font-weight="600" fill="white">Folder Manifests</text>
+  <text x="820" y="606" text-anchor="middle" font-size="9" fill="white" opacity="0.8">JSON text msgs</text>
+  <text x="820" y="620" text-anchor="middle" font-size="9" fill="white" opacity="0.8">tree structure</text>
+  <text x="820" y="634" text-anchor="middle" font-size="9" fill="white" opacity="0.8">+ metadata</text>
+
+  <!-- Caddy -->
+  <rect x="40" y="515" width="320" height="60" rx="10" fill="#2a3a4c" filter="url(#shadow)"/>
+  <text x="200" y="538" text-anchor="middle" font-size="12" font-weight="700" fill="white">Caddy Gateway (:81 → :3000)</text>
+  <text x="200" y="555" text-anchor="middle" font-size="9" fill="white" opacity="0.8">Reverse proxy · XTransformPort routing · ⚠️ open SSRF (see VULNERABILITIES C-1)</text>
+
+  <!-- Footer -->
+  <text x="480" y="700" text-anchor="middle" font-size="10" fill="#5a6b7a">Built by Tectonic · Next.js 16 · GramJS · AES-256-GCM · Reed-Solomon GF(2⁸)</text>
+</svg>

@@ -1,0 +1,204 @@
+// TeleCloud — Zero-Knowledge Virtual File System over Telegram
+// Master map: the DB records the virtual file tree; Telegram stores the encrypted blobs.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  telegramId         String   @unique  // Unique Telegram User ID from SSO
+  phone              String?  @unique  // Optional phone number
+  name               String?
+  telegramUsername   String?  // Telegram @username — used in share URLs: /?share=username/slug
+  avatarColor        String?  // deterministic gradient seed
+  avatarUrl          String?  // Official Telegram profile photo URL
+  authMethod         String   @default("sso") // "sso" | "mtproto"
+  botChatId          String?  // Direct chat or vault inbox id with the bot
+  // Encrypted MTProto StringSession (optional, if user also connected MTProto)
+  telegramSession    String?
+  // User-supplied api credentials (BYOA). Falls back to server env if null.
+  telegramApiId      String?
+  telegramApiHash    String?
+  // The private channel or bot chat used as the user's storage vault
+  vaultChannelId     String?
+  vaultChannelAccess String?
+  vaultReady         Boolean  @default(true)
+  // Master encryption key derivation salt (per user). The actual key is derived
+  // client-side from the user's password; we only store a verifier + salt.
+  encSalt            String?
+  encVerifier        String?
+  storageLimitBytes  BigInt   @default(0) // 0 = unlimited (Telegram is free)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  folders            Folder[]
+  files              File[]
+  shareLinks         ShareLink[]
+  activities         Activity[]
+}
+
+model Folder {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  parentId    String?  // null = root
+  color       String?
+  icon        String?  // lucide icon name
+  starred     Boolean  @default(false)
+  trashed     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Folder[] @relation("FolderTree")
+  files       File[]
+  shareLinks  ShareLink[]
+
+  @@index([userId, parentId])
+  @@index([userId, trashed])
+}
+
+model File {
+  id                 String   @id @default(cuid())
+  userId             String
+  folderId           String?
+  name               String
+  mimeType           String   @default("application/octet-stream")
+  size               BigInt   @default(0)
+  // Encryption metadata
+  encrypted          Boolean  @default(true)
+  encIv              String?  // base64 IV
+  // Chunking metadata — a single virtual file maps to N telegram messages
+  isChunked          Boolean  @default(false)
+  chunkSize          BigInt   @default(0)
+  totalChunks        Int      @default(1)
+  // State
+  starred            Boolean  @default(false)
+  trashed            Boolean  @default(false)
+  trashedAt          DateTime?
+  // Soft integrity check
+  checksum           String?
+  // Thumbnail (for images/videos) stored as data URL or telegram message ref
+  thumbnail          String?
+  // Manifest message ID in the vault channel — enables cross-device rebuild.
+  manifestMessageId  String?
+  // Erasure coding: number of data shards (N) and parity shards (M)
+  dataShards         Int      @default(0) // 0 = no erasure coding (legacy)
+  parityShards       Int      @default(0) // 0 = no erasure coding (legacy)
+  // Deduplication: number of chunks that were deduped (reused existing)
+  dedupedChunks      Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  lastAccessedAt     DateTime?
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder             Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  chunks             FileChunk[]
+  shareLinks         ShareLink[]
+
+  @@index([userId, folderId])
+  @@index([userId, trashed])
+  @@index([userId, starred])
+}
+
+model FileChunk {
+  id                 String   @id @default(cuid())
+  fileId             String
+  index              Int      // 0-based chunk order (data shards first, then parity)
+  // Telegram pointer: the message id in the vault channel holding this chunk
+  telegramMessageId  String
+  // Size of this chunk in bytes (encrypted payload size)
+  size               BigInt   @default(0)
+  // SHA-256 of the encrypted chunk for integrity verification + DEDUP key
+  checksum           String?
+  // Per-chunk AES-256-GCM IV (base64) — enables streaming decryption
+  encIv              String
+  // Size of the ORIGINAL (plaintext) chunk in bytes (before encryption)
+  plainSize          BigInt   @default(0)
+  // Simulation mode: when not using real Telegram, bytes are stored on disk
+  localPath          String?
+  // Erasure coding: true = parity shard, false = data shard
+  isParity           Boolean  @default(false)
+  // Deduplication: true if this chunk was NOT uploaded (reused existing Telegram message)
+  deduped            Boolean  @default(false)
+  // For parity shards: the shard size (all shards in an erasure group are same size)
+  shardSize          BigInt   @default(0)
+  createdAt          DateTime @default(now())
+
+  file               File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, index])
+  @@index([checksum]) // for dedup lookup
+}
+
+model ShareLink {
+  id            String    @id @default(cuid())
+  userId        String
+  // For single-item shares (backward compat)
+  fileId        String?
+  folderId      String?
+  // Random opaque token (always present) — the canonical share id.
+  token         String    @unique
+  // Optional human-friendly custom slug, e.g. "q4-report" -> ?share=q4-report
+  customSlug    String?   @unique
+  // Access control
+  password      String?   // hashed
+  expiresAt     DateTime?
+  // Download limits (serverless-safe: atomic increment + check)
+  downloadCount Int       @default(0)
+  maxDownloads  Int?
+  // View limits (a "view" = public page load, distinct from download)
+  viewCount     Int       @default(0)
+  maxViews      Int?
+  // viewOnly = preview allowed, download blocked (good for confidential docs)
+  viewOnly      Boolean   @default(false)
+  // Email gate: require an email to access (logged, optional allowlist)
+  emailGate     Boolean   @default(false)
+  allowedEmails String?   // comma-separated allowlist (empty = any email)
+  viewerEmails  String?   // comma-separated log of emails that accessed
+  // IP allowlist (comma-separated, optional)
+  accessIps     String?
+  lastAccessedAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file          File?     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  folder        Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  // Multi-item shares (batch) — one share link can contain multiple files + folders
+  items         ShareItem[]
+
+  @@index([userId])
+  @@index([token])
+  @@index([customSlug])
+}
+
+model ShareItem {
+  id          String   @id @default(cuid())
+  shareLinkId String
+  fileId      String?
+  folderId    String?
+  createdAt   DateTime @default(now())
+
+  shareLink   ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+
+  @@index([shareLinkId])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // upload, download, delete, share, folder_create, login, etc.
+  details   String   // JSON string
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}

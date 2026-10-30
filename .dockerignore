@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.gitignore
+db/*.db
+db/*.db-journal
+scratch
+*.log
+dev.log
+server.log
+.env.local

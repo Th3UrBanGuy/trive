@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="brandG3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c3f81"/>
+      <stop offset="50%" stop-color="#1e84c6"/>
+      <stop offset="100%" stop-color="#1a8aae"/>
+    </linearGradient>
+    <marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5a6b7a"/>
+    </marker>
+    <marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c44"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2a8a4a"/>
+    </marker>
+    <filter id="sh3" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="680" fill="#f4f7fa"/>
+  <text x="480" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#203240">TriVE — Share Resolution & Download Flow</text>
+
+  <!-- URL input -->
+  <rect x="280" y="50" width="400" height="44" rx="8" fill="white" stroke="#dbe4ec" filter="url(#sh3)"/>
+  <text x="480" y="68" text-anchor="middle" font-size="11" font-weight="600" fill="#203240">/?share=Ra726ma/ntg</text>
+  <text x="480" y="84" text-anchor="middle" font-size="9" fill="#5a6b7a">URL formats: username/slug · username/token · bare-slug (legacy) · bare-token (legacy)</text>
+
+  <line x1="480" y1="94" x2="480" y2="118" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr3)"/>
+
+  <!-- findShare -->
+  <rect x="330" y="120" width="300" height="100" rx="10" fill="url(#brandG3)" filter="url(#sh3)"/>
+  <text x="480" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="white">findShare(key)</text>
+  <text x="480" y="158" text-anchor="middle" font-size="9" fill="white" opacity="0.9">src/lib/share-resolve.ts</text>
+  <text x="480" y="174" text-anchor="middle" font-size="9" fill="white" opacity="0.9">key contains "/"?</text>
+  <text x="480" y="188" text-anchor="middle" font-size="9" fill="white" opacity="0.9">→ findFirst(telegramUsername, lowercase)</text>
+  <text x="480" y="202" text-anchor="middle" font-size="9" fill="white" opacity="0.9">→ findFirst(customSlug | token, userId)</text>
+  <text x="480" y="214" text-anchor="middle" font-size="8" fill="white" opacity="0.8">JS case-insensitive fallback for legacy mixed-case rows</text>
+
+  <line x1="480" y1="220" x2="480" y2="244" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr3)"/>
+
+  <!-- Gate checks -->
+  <rect x="60" y="246" width="840" height="200" rx="12" fill="white" stroke="#dbe4ec" filter="url(#sh3)"/>
+  <text x="80" y="268" font-size="12" font-weight="700" fill="#1c3f81" letter-spacing="1">ACCESS GATES (checked in order)</text>
+
+  <!-- Gate 1: trashed -->
+  <rect x="80" y="280" width="150" height="36" rx="8" fill="#fde8e8" stroke="#f0b8b8"/>
+  <text x="155" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#c44">1. Trashed?</text>
+  <text x="155" y="312" text-anchor="middle" font-size="8" fill="#c44">file/folder trashed → 404 removed</text>
+
+  <!-- Gate 2: expiry -->
+  <rect x="240" y="280" width="150" height="36" rx="8" fill="#fde8e8" stroke="#f0b8b8"/>
+  <text x="315" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#c44">2. Expired?</text>
+  <text x="315" y="312" text-anchor="middle" font-size="8" fill="#c44">expiresAt &lt; now → terminal</text>
+
+  <!-- Gate 3: exhausted -->
+  <rect x="400" y="280" width="150" height="36" rx="8" fill="#fde8e8" stroke="#f0b8b8"/>
+  <text x="475" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#c44">3. Exhausted?</text>
+  <text x="475" y="312" text-anchor="middle" font-size="8" fill="#c44">views/downloads ≥ max → terminal</text>
+
+  <!-- Gate 4: IP -->
+  <rect x="560" y="280" width="150" height="36" rx="8" fill="#fff8e8" stroke="#f0d8b8"/>
+  <text x="635" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">4. IP allowlist</text>
+  <text x="635" y="312" text-anchor="middle" font-size="8" fill="#8a5a1a">not in list → 403</text>
+
+  <!-- Gate 5: password -->
+  <rect x="720" y="280" width="160" height="36" rx="8" fill="#fff8e8" stroke="#f0d8b8"/>
+  <text x="800" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">5. Password gate</text>
+  <text x="800" y="312" text-anchor="middle" font-size="8" fill="#8a5a1a">no/wrong pw → needsPassword</text>
+
+  <!-- Gate 6: email -->
+  <rect x="80" y="328" width="150" height="36" rx="8" fill="#fff8e8" stroke="#f0d8b8"/>
+  <text x="155" y="346" text-anchor="middle" font-size="10" font-weight="600" fill="#8a5a1a">6. Email gate</text>
+  <text x="155" y="360" text-anchor="middle" font-size="8" fill="#8a5a1a">no email → needsEmail</text>
+
+  <!-- Gate 7: authorize fileId -->
+  <rect x="240" y="328" width="180" height="36" rx="8" fill="#e8f5e8" stroke="#b8d8b8"/>
+  <text x="330" y="346" text-anchor="middle" font-size="10" font-weight="600" fill="#2a6a2a">7. Authorize fileId</text>
+  <text x="330" y="360" text-anchor="middle" font-size="8" fill="#2a6a2a">direct ShareItem OR in shared folder</text>
+
+  <!-- Pass -->
+  <rect x="430" y="328" width="200" height="36" rx="8" fill="#e8f5e8" stroke="#b8d8b8"/>
+  <text x="530" y="346" text-anchor="middle" font-size="10" font-weight="600" fill="#2a6a2a">✓ All gates passed</text>
+  <text x="530" y="360" text-anchor="middle" font-size="8" fill="#2a6a2a">increment viewCount (atomic)</text>
+
+  <!-- View-only -->
+  <rect x="640" y="328" width="240" height="36" rx="8" fill="#fde8e8" stroke="#f0b8b8"/>
+  <text x="760" y="346" text-anchor="middle" font-size="10" font-weight="600" fill="#c44">⚠️ View-only bypass via ?inline=1</text>
+  <text x="760" y="360" text-anchor="middle" font-size="8" fill="#c44">H-8: not a security boundary</text>
+
+  <text x="480" y="390" text-anchor="middle" font-size="9" fill="#5a6b7a">→ If any gate fails: return terminal state (expired/exhausted/removed) or re-prompt (password/email). No item metadata leaked before password gate (M-2 fix needed).</text>
+  <text x="480" y="406" text-anchor="middle" font-size="9" fill="#c44" font-weight="600">⚠️ Current order leaks metadata before password (VULNERABILITIES M-2) — gates should run BEFORE item enumeration</text>
+
+  <line x1="480" y1="430" x2="480" y2="454" stroke="#2a8a4a" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+  <!-- Stream decision -->
+  <rect x="200" y="456" width="560" height="80" rx="10" fill="white" stroke="#dbe4ec" filter="url(#sh3)"/>
+  <text x="480" y="478" text-anchor="middle" font-size="12" font-weight="700" fill="#1c3f81">Stream Selection</text>
+  <text x="480" y="494" text-anchor="middle" font-size="9" fill="#5a6b7a">fileId param? → streamFileFromVault (single file, parallel prefetch 3 chunks)</text>
+  <text x="480" y="508" text-anchor="middle" font-size="9" fill="#5a6b7a">folderId only? → streamFolderZipFromVault (ZIP, recursive tree)</text>
+  <text x="480" y="522" text-anchor="middle" font-size="9" fill="#5a6b7a">batch (items)? → streamBatchZipFromVault (ZIP, files + folder trees)</text>
+
+  <line x1="480" y1="536" x2="480" y2="560" stroke="#5a6b7a" stroke-width="2" marker-end="url(#arr3)"/>
+
+  <!-- Decrypt pipeline -->
+  <rect x="80" y="562" width="800" height="100" rx="10" fill="url(#brandG3)" filter="url(#sh3)"/>
+  <text x="480" y="584" text-anchor="middle" font-size="12" font-weight="700" fill="white">Per-Chunk Decrypt Pipeline</text>
+  <text x="480" y="600" text-anchor="middle" font-size="9" fill="white" opacity="0.9">downloadChunk (GramJS) → verify SHA-256 checksum → truncate to plainSize + 16 → AES-256-GCM decrypt → enqueue</text>
+  <text x="480" y="616" text-anchor="middle" font-size="9" fill="white" opacity="0.9">If shard missing: erasure decode (generator matrix, NOT Vandermonde) → reconstruct → truncate → decrypt</text>
+  <text x="480" y="632" text-anchor="middle" font-size="9" fill="white" opacity="0.9">File-level: verify SHA-256(plaintext) === file.checksum → stream to client (Content-Disposition: attachment/inline)</text>
+  <text x="480" y="650" text-anchor="middle" font-size="8" fill="white" opacity="0.8">ZIP: archiver + Readable.toWeb(archive) → incremental append → finalize() or destroy(error) if all fail</text>
+</svg>

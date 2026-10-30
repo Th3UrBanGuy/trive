@@ -1,0 +1,23 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npx prisma generate && next build",
+  "installCommand": "npm install",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/api/dav/(.*)",
+      "headers": [
+        { "key": "DAV", "value": "1, 2" },
+        { "key": "MS-Author-Via", "value": "DAV" },
+        { "key": "Accept-Ranges", "value": "bytes" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/api/files/(.*)",
+      "headers": [
+        { "key": "Accept-Ranges", "value": "bytes" }
+      ]
+    }
+  ]
+}
