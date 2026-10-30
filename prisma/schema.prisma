@@ -35,6 +35,8 @@ model User {
   encSalt            String?
   encVerifier        String?
   storageLimitBytes  BigInt   @default(0) // 0 = unlimited (Telegram is free)
+  davPassword        String?  // Hashed WebDAV Basic Auth password (scrypt)
+  customUsername     String?  // Optional custom username for WebDAV / profile
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

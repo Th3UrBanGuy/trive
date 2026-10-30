@@ -157,4 +157,25 @@ export const api = {
   // ---- settings ----
   updateProfile: (name: string) => req<User>("/api/settings", { method: "PATCH", body: JSON.stringify({ name }) }),
   deleteAccount: () => req<void>("/api/settings", { method: "DELETE" }),
+
+  // ---- webdav ----
+  getDavCredentials: () =>
+    req<{
+      username: string
+      telegramUsername: string | null
+      customUsername: string | null
+      hasPassword: boolean
+      davPath: string
+    }>("/api/settings/dav"),
+  updateDavCredentials: (data: { username?: string; password?: string; generateRandom?: boolean }) =>
+    req<{
+      success: boolean
+      username: string
+      customUsername: string | null
+      hasPassword: boolean
+      password?: string
+    }>("/api/settings/dav", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 }

@@ -5,13 +5,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   AlertTriangle,
+  Check,
+  CheckCircle2,
+  Copy,
+  Edit3,
   Globe,
   HardDrive,
+  Key,
   Loader2,
   Lock,
   LogOut,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   Trash2,
   User as UserIcon,
 } from "lucide-react"
@@ -82,6 +88,63 @@ export function SettingsView() {
       toast.error("Couldn't delete account", {
         description: e instanceof Error ? e.message : undefined,
       }),
+  })
+
+  // WebDAV state & mutations
+  const [davInfo, setDavInfo] = React.useState<{
+    username: string
+    customUsername: string | null
+    telegramUsername: string | null
+    hasPassword: boolean
+    davPath: string
+  } | null>(null)
+  const [editingUsername, setEditingUsername] = React.useState(false)
+  const [customUsernameInput, setCustomUsernameInput] = React.useState("")
+  const [changingPassword, setChangingPassword] = React.useState(false)
+  const [newPasswordInput, setNewPasswordInput] = React.useState("")
+  const [revealedPassword, setRevealedPassword] = React.useState<string | null>(null)
+  const [copiedField, setCopiedField] = React.useState<string | null>(null)
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    toast.success(`${field} copied`)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  React.useEffect(() => {
+    api
+      .getDavCredentials()
+      .then((res) => {
+        setDavInfo(res)
+        setCustomUsernameInput(res.customUsername || res.telegramUsername || "")
+      })
+      .catch(() => {})
+  }, [])
+
+  const davPasswordMut = useMutation({
+    mutationFn: (data: { password?: string; generateRandom?: boolean }) =>
+      api.updateDavCredentials(data),
+    onSuccess: (res) => {
+      setDavInfo((prev) => (prev ? { ...prev, hasPassword: true, username: res.username } : null))
+      if (res.password) {
+        setRevealedPassword(res.password)
+      }
+      setChangingPassword(false)
+      setNewPasswordInput("")
+      toast.success(res.password ? "New WebDAV password generated" : "WebDAV password updated")
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to update WebDAV password"),
+  })
+
+  const davUsernameMut = useMutation({
+    mutationFn: (username: string) => api.updateDavCredentials({ username }),
+    onSuccess: (res) => {
+      setDavInfo((prev) => (prev ? { ...prev, username: res.username, customUsername: res.customUsername } : null))
+      setEditingUsername(false)
+      toast.success("WebDAV username updated")
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to update WebDAV username"),
   })
 
   if (!user) return null
@@ -207,38 +270,249 @@ export function SettingsView() {
       {/* WebDAV */}
       <Section
         icon={HardDrive}
-        title="WebDAV Access"
-        description="Mount your vault as a local drive on Windows, macOS, or Linux."
+        title="WebDAV & Virtual Network Drive"
+        description="Mount your TriVE vault as a real local hard drive on Windows, macOS, or Mobile."
       >
         <div className="space-y-4">
-          <div className="glass-panel rounded-lg p-3 space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Universal WebDAV URL</Label>
+          {/* WebDAV Server URL */}
+          <div className="glass-panel rounded-lg p-3 space-y-2 border border-brand/20 bg-brand/[0.02]">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-wide font-semibold text-muted-foreground flex items-center gap-1.5">
+                <Globe className="size-3.5 text-brand" />
+                WebDAV Server URL
+              </Label>
+              <span className="text-[10px] text-brand bg-brand/10 px-1.5 py-0.5 rounded font-mono">
+                Port 443 (HTTPS)
+              </span>
+            </div>
             <div className="flex gap-2">
-              <Input 
-                readOnly 
-                value={typeof window !== 'undefined' ? `${window.location.origin}/api/dav` : ''} 
-                className="font-mono text-xs h-8"
+              <Input
+                readOnly
+                value={typeof window !== "undefined" ? `${window.location.origin}/api/dav` : ""}
+                className="font-mono text-xs h-9 bg-background/50 select-all"
               />
-              <Button size="sm" variant="ghost" className="h-8" onClick={() => {
-                const url = `${window.location.origin}/api/dav`
-                navigator.clipboard.writeText(url)
-                toast.success("WebDAV URL copied")
-              }}>Copy</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 gap-1.5 shrink-0 hover:border-brand/40"
+                onClick={() => {
+                  const url = `${window.location.origin}/api/dav`
+                  copyToClipboard(url, "WebDAV URL")
+                }}
+              >
+                {copiedField === "WebDAV URL" ? (
+                  <Check className="size-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
+                {copiedField === "WebDAV URL" ? "Copied" : "Copy"}
+              </Button>
             </div>
           </div>
+
+          {/* Credentials Grid */}
           <div className="grid sm:grid-cols-2 gap-3">
-             <div className="glass-panel rounded-lg p-3">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Username</div>
-                <div className="text-sm font-medium mt-1 font-mono">{user.telegramUsername || user.telegramId || user.phone || user.id}</div>
-             </div>
-             <div className="glass-panel rounded-lg p-3">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Password</div>
-                <div className="text-sm font-medium mt-1">Your Admin Password</div>
-             </div>
+            {/* Username Card */}
+            <div className="glass-panel rounded-lg p-3 space-y-2 border border-border/60">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  WebDAV Username
+                </div>
+                {!editingUsername && (
+                  <button
+                    onClick={() => {
+                      setCustomUsernameInput(davInfo?.username || user.telegramUsername || user.telegramId)
+                      setEditingUsername(true)
+                    }}
+                    className="text-[11px] text-brand hover:underline flex items-center gap-1"
+                  >
+                    <Edit3 className="size-3" /> Edit
+                  </button>
+                )}
+              </div>
+
+              {editingUsername ? (
+                <div className="space-y-2 pt-1">
+                  <Input
+                    value={customUsernameInput}
+                    onChange={(e) => setCustomUsernameInput(e.target.value)}
+                    placeholder="Enter custom username"
+                    className="text-xs h-8 font-mono"
+                  />
+                  <div className="flex gap-1.5 justify-end">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs px-2"
+                      onClick={() => setEditingUsername(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs px-2.5 gap-1"
+                      disabled={davUsernameMut.isPending || !customUsernameInput.trim()}
+                      onClick={() => davUsernameMut.mutate(customUsernameInput.trim())}
+                    >
+                      {davUsernameMut.isPending ? <Loader2 className="size-3 animate-spin" /> : null}
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-sm font-semibold font-mono text-foreground tracking-tight">
+                    {davInfo?.username || user.telegramUsername || user.telegramId}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      const u = davInfo?.username || user.telegramUsername || user.telegramId
+                      copyToClipboard(u, "Username")
+                    }}
+                  >
+                    {copiedField === "Username" ? (
+                      <Check className="size-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="size-3" />
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Password Card */}
+            <div className="glass-panel rounded-lg p-3 space-y-2 border border-border/60">
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                  WebDAV Password
+                </div>
+                {davInfo?.hasPassword && !changingPassword && (
+                  <button
+                    onClick={() => {
+                      setNewPasswordInput("")
+                      setChangingPassword(true)
+                    }}
+                    className="text-[11px] text-brand hover:underline flex items-center gap-1"
+                  >
+                    <Key className="size-3" /> Change
+                  </button>
+                )}
+              </div>
+
+              {changingPassword ? (
+                <div className="space-y-2 pt-1">
+                  <Input
+                    type="text"
+                    value={newPasswordInput}
+                    onChange={(e) => setNewPasswordInput(e.target.value)}
+                    placeholder="Min 6 characters"
+                    className="text-xs h-8 font-mono"
+                  />
+                  <div className="flex gap-1.5 justify-end">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-xs px-2"
+                      onClick={() => setChangingPassword(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs px-2.5 gap-1"
+                      disabled={davPasswordMut.isPending || newPasswordInput.trim().length < 6}
+                      onClick={() => davPasswordMut.mutate({ password: newPasswordInput.trim() })}
+                    >
+                      {davPasswordMut.isPending ? <Loader2 className="size-3 animate-spin" /> : null}
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-0.5">
+                  <span className="text-sm font-semibold font-mono tracking-wider text-foreground">
+                    {davInfo?.hasPassword ? "••••••••••••" : "Not Set"}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs gap-1 text-brand border-brand/30 hover:bg-brand/10"
+                      disabled={davPasswordMut.isPending}
+                      onClick={() => davPasswordMut.mutate({ generateRandom: true })}
+                      title="Generate a new secure password"
+                    >
+                      {davPasswordMut.isPending ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-3" />
+                      )}
+                      {davInfo?.hasPassword ? "Reset" : "Create"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="text-[11px] text-muted-foreground bg-brand/5 p-2.5 rounded-lg flex items-start gap-2 border border-brand/10">
-            <ShieldCheck className="size-3.5 mt-0.5 text-brand shrink-0" />
-            <span>Mount as native drive in Windows File Explorer (Map Network Drive), macOS Finder (Cmd+K), or Mobile (Solid Explorer). Files stream & decrypt on-the-fly.</span>
+
+          {/* Newly Generated Password Notification */}
+          {revealedPassword && (
+            <div className="rounded-lg p-3 bg-emerald-500/10 border border-emerald-500/25 space-y-2 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="size-4 text-emerald-400" />
+                  New WebDAV Password Generated
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 text-[10px] text-muted-foreground hover:text-foreground"
+                  onClick={() => setRevealedPassword(null)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+              <div className="flex items-center justify-between bg-background/80 p-2 rounded border border-emerald-500/20 font-mono text-sm text-foreground">
+                <span className="select-all font-semibold">{revealedPassword}</span>
+                <Button
+                  size="sm"
+                  className="h-7 px-3 text-xs gap-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                  onClick={() => copyToClipboard(revealedPassword, "WebDAV Password")}
+                >
+                  {copiedField === "WebDAV Password" ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
+                  {copiedField === "WebDAV Password" ? "Copied" : "Copy Password"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Copy and save this password. You will use this to connect your PC or phone to TriVE.
+              </p>
+            </div>
+          )}
+
+          {/* Quick Mount Guide */}
+          <div className="text-[11px] text-muted-foreground bg-brand/5 p-3 rounded-lg border border-brand/10 space-y-2">
+            <div className="flex items-center gap-1.5 font-medium text-foreground text-xs">
+              <ShieldCheck className="size-3.5 text-brand shrink-0" />
+              <span>How to Mount as a Real Hard Drive</span>
+            </div>
+            <div className="grid gap-1.5 pl-5 list-disc text-[11px]">
+              <div>
+                <strong className="text-foreground">Windows PC:</strong> Open <em>File Explorer</em> &rarr; Right click <em>This PC</em> &rarr; <em>Map network drive</em> &rarr; Paste WebDAV URL &rarr; Enter your username & password.
+              </div>
+              <div>
+                <strong className="text-foreground">macOS:</strong> Open <em>Finder</em> &rarr; Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">Cmd + K</kbd> &rarr; Paste WebDAV URL &rarr; Connect as Registered User.
+              </div>
+              <div>
+                <strong className="text-foreground">Android / iOS:</strong> In <em>Solid Explorer</em> or <em>Documents by Readdle</em> &rarr; <em>Add Storage</em> &rarr; <em>WebDAV</em> &rarr; Paste URL and credentials.
+              </div>
+            </div>
           </div>
         </div>
       </Section>

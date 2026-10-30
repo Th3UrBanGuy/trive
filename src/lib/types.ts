@@ -6,6 +6,9 @@ export interface User {
   phone: string | null
   name: string | null
   telegramUsername: string | null
+  customUsername?: string | null
+  hasDavPassword?: boolean
+  davUsername?: string
   avatarColor: string | null
   avatarUrl?: string | null
   authMethod?: string

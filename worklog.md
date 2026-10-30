@@ -416,3 +416,15 @@ Stage Summary:
 - Fixed Prisma Turso validation error: added @prisma/adapter-libsql, updated schema.prisma with driverAdapters and dynamic connection in db.ts.
 - Executed 60/60 automated validation scenarios covering User Auth, AES-256-GCM, Reed-Solomon GF(2^8), VFS hierarchy, chunks, share links, and WebDAV with 100% pass rate.
 - Verified microservice decoupling across Edge UI, Turso DB, MTProto Engine, and WebDAV Gateway.
+
+---
+Task ID: WEBDAV-CREDENTIALS-CUSTOM-AUTH
+Agent: Antigravity Orchestrator
+Task: Optimize WebDAV credentials UX, sync user passwords, custom username support, and seamless mount instructions.
+
+Stage Summary:
+- Turso Database: Added 'davPassword' and 'customUsername' columns to 'User' table in aws-ap-south-1.
+- Authentication Bridge: Updated /api/dav/[[...path]] to support personal scrypt-hashed WebDAV passwords alongside admin password fallback. Support customUsername, telegramUsername (case-insensitive), telegramId, and phone.
+- Settings Management API: Built /api/settings/dav (GET/POST) allowing users to view credentials, customize username, and generate/change secure WebDAV passphrases with 1-click.
+- Frontend Settings UX: Upgraded WebDAV Section in SettingsView with live server URL, interactive username editor, password generator card with 1-click copy, and multi-OS network drive mount guides.
+- Verification: Executed simulated Basic Auth tests against live Turso database; verified custom username, telegram username, scrypt password hashing, and invalid password rejection (100% pass).

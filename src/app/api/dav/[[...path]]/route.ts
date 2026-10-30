@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { getCurrentUser } from "@/lib/session"
 import { generatePropfindResponse, generateOptionsResponse } from "@/lib/webdav-utils"
 import { streamFileFromVault, uploadFileToVault, deleteFileFromVault } from "@/lib/file-ops"
+import { verifyPassword } from "@/lib/crypto"
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -14,25 +15,43 @@ async function authenticate(req: Request) {
   if (authHeader?.startsWith("Basic ")) {
     try {
       const decoded = Buffer.from(authHeader.split(" ")[1], "base64").toString()
-      const [loginId, password] = decoded.split(":")
-      if (password === process.env.ADMIN_PASSWORD) {
-        const u = await db.user.findFirst({
-          where: {
-            OR: [
-              { telegramUsername: loginId.toLowerCase() },
-              { telegramId: loginId },
-              ...(loginId ? [{ phone: loginId }] : []),
-              { id: loginId },
-            ],
-          },
-        })
-        if (u) return { 
-          id: u.id,
-          telegramId: u.telegramId,
-          phone: u.phone, 
-          name: u.name, 
-          telegramConnected: !!u.telegramSession || !!process.env.TELEGRAM_BOT_TOKEN,
-          vaultReady: u.vaultReady
+      const colonIdx = decoded.indexOf(":")
+      if (colonIdx === -1) return null
+      const loginId = decoded.slice(0, colonIdx).trim()
+      const password = decoded.slice(colonIdx + 1)
+      const searchId = loginId.toLowerCase()
+
+      const u = await db.user.findFirst({
+        where: {
+          OR: [
+            { customUsername: searchId },
+            { telegramUsername: searchId },
+            { telegramId: loginId },
+            ...(loginId ? [{ phone: loginId }] : []),
+            { id: loginId },
+          ],
+        },
+      })
+      if (u) {
+        let valid = false
+        // 1. Personal WebDAV password
+        if (u.davPassword && verifyPassword(password, u.davPassword)) {
+          valid = true
+        }
+        // 2. Fallback to ADMIN_PASSWORD for server administration
+        if (!valid && process.env.ADMIN_PASSWORD && password === process.env.ADMIN_PASSWORD) {
+          valid = true
+        }
+
+        if (valid) {
+          return { 
+            id: u.id,
+            telegramId: u.telegramId,
+            phone: u.phone, 
+            name: u.name, 
+            telegramConnected: !!u.telegramSession || !!process.env.TELEGRAM_BOT_TOKEN,
+            vaultReady: u.vaultReady
+          }
         }
       }
     } catch {}
