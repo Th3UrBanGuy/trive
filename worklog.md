@@ -428,3 +428,15 @@ Stage Summary:
 - Settings Management API: Built /api/settings/dav (GET/POST) allowing users to view credentials, customize username, and generate/change secure WebDAV passphrases with 1-click.
 - Frontend Settings UX: Upgraded WebDAV Section in SettingsView with live server URL, interactive username editor, password generator card with 1-click copy, and multi-OS network drive mount guides.
 - Verification: Executed simulated Basic Auth tests against live Turso database; verified custom username, telegram username, scrypt password hashing, and invalid password rejection (100% pass).
+
+---
+Task ID: FIX-LFS-LOGO-AND-VERCEL-SYNC
+Agent: Antigravity Orchestrator
+Task: Un-track images from Git LFS in .gitattributes so Vercel receives real PNG binaries instead of 130-byte LFS text pointers. Add SVG brand fallback in brand.tsx.
+
+Stage Summary:
+- Root Cause Identified: .gitattributes was treating *.png as git-lfs filters. Vercel builds do not pull LFS binaries without paid add-ons, causing trive-mark-trimmed.png to serve a 130-byte text pointer instead of an actual image.
+- Removed *.png and *.ico from .gitattributes.
+- Force re-added all public/*.png and public/*.ico as standard git binaries.
+- Enhanced BrandMark in brand.tsx with vector SVG fallback with brand gradient.
+- Synced changes to GitHub main branch.
