@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   BarChart3,
+  Check,
+  Copy,
   Cpu,
   Database,
   Eye,
@@ -25,6 +27,7 @@ import {
   Settings,
   Share2,
   ShieldCheck,
+  Terminal,
   Trash2,
   Users,
   X,
@@ -359,7 +362,7 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
 /* Admin dashboard                                                    */
 /* ================================================================== */
 
-type Tab = "overview" | "users" | "files" | "shares" | "activity" | "system"
+type Tab = "overview" | "users" | "files" | "shares" | "activity" | "system" | "terminal"
 
 const NAV_ITEMS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
@@ -368,6 +371,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "shares", label: "Shares", icon: Share2 },
   { id: "activity", label: "Activity", icon: ActivityIcon },
   { id: "system", label: "System", icon: Cpu },
+  { id: "terminal", label: "Terminal", icon: Terminal },
 ]
 
 function AdminDashboard({
@@ -493,6 +497,7 @@ function AdminDashboard({
                 {tab === "shares" && <SharesTab />}
                 {tab === "activity" && <ActivityTab />}
                 {tab === "system" && <SystemTab />}
+                {tab === "terminal" && <TerminalTab />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -1653,4 +1658,238 @@ function formatUptime(seconds: number): string {
   if (h > 0) return `${h}h ${m}m ${s}s`
   if (m > 0) return `${m}m ${s}s`
   return `${s}s`
+}
+
+/* ================================================================== */
+/* Terminal Tab (Container & Host Shell Access)                         */
+/* ================================================================== */
+
+interface TerminalHistoryEntry {
+  cmd: string
+  stdout: string
+  stderr: string
+  ok: boolean
+  time: string
+  cwd?: string
+}
+
+function TerminalTab() {
+  const [command, setCommand] = React.useState("")
+  const [history, setHistory] = React.useState<TerminalHistoryEntry[]>([])
+  const [historyIdx, setHistoryIdx] = React.useState<number | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [copied, setCopied] = React.useState(false)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const logEndRef = React.useRef<HTMLDivElement>(null)
+
+  const quickActions = [
+    { label: "OS Info", cmd: "uname -a 2>/dev/null || ver" },
+    { label: "Memory", cmd: "free -h 2>/dev/null || wmic OS get FreePhysicalMemory,TotalVisibleMemorySize" },
+    { label: "Disk Usage", cmd: "df -h 2>/dev/null || fsutil volume diskfree c:" },
+    { label: "Directory", cmd: "ls -la 2>/dev/null || dir" },
+    { label: "Processes", cmd: "ps aux 2>/dev/null || tasklist" },
+    { label: "Node & Env", cmd: "node -v" },
+  ]
+
+  const executeCmd = async (cmdToRun: string) => {
+    const trimmed = cmdToRun.trim()
+    if (!trimmed || loading) return
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: trimmed }),
+      })
+      const data = await res.json()
+      setHistory((prev) => [
+        ...prev,
+        {
+          cmd: trimmed,
+          stdout: data.stdout || "",
+          stderr: data.stderr || (data.error ? String(data.error) : ""),
+          ok: !!data.ok,
+          time: new Date().toLocaleTimeString(),
+          cwd: data.cwd,
+        },
+      ])
+      setCommand("")
+      setHistoryIdx(null)
+    } catch (err: any) {
+      setHistory((prev) => [
+        ...prev,
+        {
+          cmd: trimmed,
+          stdout: "",
+          stderr: err?.message || "Execution failed",
+          ok: false,
+          time: new Date().toLocaleTimeString(),
+        },
+      ])
+    } finally {
+      setLoading(false)
+      setTimeout(() => logEndRef.current?.scrollIntoView({ behavior: "smooth" }), 60)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      executeCmd(command)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      if (history.length === 0) return
+      const nextIdx = historyIdx === null ? history.length - 1 : Math.max(0, historyIdx - 1)
+      setHistoryIdx(nextIdx)
+      setCommand(history[nextIdx].cmd)
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault()
+      if (historyIdx === null) return
+      if (historyIdx >= history.length - 1) {
+        setHistoryIdx(null)
+        setCommand("")
+      } else {
+        const nextIdx = historyIdx + 1
+        setHistoryIdx(nextIdx)
+        setCommand(history[nextIdx].cmd)
+      }
+    }
+  }
+
+  const copyAllLogs = () => {
+    const text = history
+      .map((h) => `$ ${h.cmd}\n${h.stdout}${h.stderr ? "\nSTDERR:\n" + h.stderr : ""}`)
+      .join("\n\n---\n\n")
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    toast.success("Terminal output copied to clipboard")
+  }
+
+  return (
+    <div className="space-y-4">
+      <TabHeader
+        title="Container Terminal"
+        subtitle="Direct authenticated shell execution inside the runtime container"
+        actions={
+          <div className="flex items-center gap-2">
+            {history.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyAllLogs}
+                  className="h-8 gap-1.5 text-xs border-border/40"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  Copy Output
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setHistory([])}
+                  className="h-8 gap-1.5 text-xs border-border/40 hover:text-red-400"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Clear
+                </Button>
+              </>
+            )}
+          </div>
+        }
+      />
+
+      {/* Quick command buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-muted-foreground mr-1">Quick actions:</span>
+        {quickActions.map((qa) => (
+          <button
+            key={qa.label}
+            onClick={() => executeCmd(qa.cmd)}
+            disabled={loading}
+            className="text-xs px-2.5 py-1 rounded-lg border border-border/40 bg-white/5 hover:bg-white/10 active:scale-95 transition text-foreground/80 font-mono disabled:opacity-50"
+          >
+            {qa.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Terminal Viewport */}
+      <AdminCard className="p-0 overflow-hidden border-border/40 bg-black/85 shadow-2xl font-mono">
+        {/* Terminal Header */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/30 bg-white/[0.03]">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500/80" />
+            <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+            <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+            <span className="text-xs text-muted-foreground ml-2 font-mono">trive@container:~#</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground/60 uppercase tracking-widest">
+            {loading ? "EXECUTING..." : "READY"}
+          </span>
+        </div>
+
+        {/* Output Logs */}
+        <div className="p-4 min-h-[340px] max-h-[520px] overflow-y-auto space-y-4 text-xs select-text">
+          {history.length === 0 ? (
+            <div className="text-muted-foreground/50 py-10 text-center">
+              <Terminal className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p>Type a command below or click a quick action to execute.</p>
+              <p className="text-[11px] mt-1 text-muted-foreground/30">
+                Commands run securely with authenticated admin credentials.
+              </p>
+            </div>
+          ) : (
+            history.map((entry, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex items-center gap-2 text-cyan-400 font-semibold">
+                  <span className="text-emerald-400">➜</span>
+                  <span className="text-muted-foreground text-[10px]">{entry.time}</span>
+                  <span className="text-foreground/90">{entry.cmd}</span>
+                </div>
+                {entry.stdout && (
+                  <pre className="text-emerald-300/90 whitespace-pre-wrap break-all bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-900/30 font-mono text-[11px] leading-relaxed">
+                    {entry.stdout}
+                  </pre>
+                )}
+                {entry.stderr && (
+                  <pre className="text-red-300 whitespace-pre-wrap break-all bg-red-950/25 p-2.5 rounded-lg border border-red-900/30 font-mono text-[11px] leading-relaxed">
+                    {entry.stderr}
+                  </pre>
+                )}
+              </div>
+            ))
+          )}
+          <div ref={logEndRef} />
+        </div>
+
+        {/* Input Bar */}
+        <div className="flex items-center gap-2 px-4 py-3 border-t border-border/30 bg-white/[0.02]">
+          <span className="text-emerald-400 font-bold font-mono text-sm">❯</span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={command}
+            onChange={(e) => setCommand(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={loading}
+            placeholder={loading ? "Executing command..." : "Type command (e.g. ls, df -h, node -v)..."}
+            className="flex-1 bg-transparent border-0 outline-none text-foreground font-mono text-xs placeholder:text-muted-foreground/40 disabled:opacity-50"
+            autoFocus
+          />
+          {loading ? (
+            <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => executeCmd(command)}
+              disabled={!command.trim()}
+              className="h-7 px-3 text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-mono gap-1"
+            >
+              Run
+            </Button>
+          )}
+        </div>
+      </AdminCard>
+    </div>
+  )
 }

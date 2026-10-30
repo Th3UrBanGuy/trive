@@ -17,13 +17,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Command required" }, { status: 400 })
     }
 
-    // Execute command with bash
+    // Execute command with platform shell (bash in Linux container, cmd.exe in Windows)
     const workDir = cwd || process.cwd()
+    const isWindows = process.platform === "win32"
+    const defaultShell = isWindows ? (process.env.ComSpec || "cmd.exe") : "/bin/bash"
+
     try {
       const { stdout, stderr } = await execAsync(command, {
         cwd: workDir,
         timeout: 30000,
-        shell: "/bin/bash",
+        shell: defaultShell,
         env: { ...process.env, PATH: process.env.PATH },
       })
 
