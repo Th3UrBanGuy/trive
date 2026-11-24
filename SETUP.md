@@ -52,11 +52,11 @@ bun run lint
 The `.env` file is included with real credentials:
 
 ```
-DATABASE_URL=file:/home/z/my-project/db/custom.db
-TELEGRAM_API_ID=35740212
-TELEGRAM_API_HASH=f70f925ef1d4b78d2ca58065575b5b26
-APP_SECRET=trive-prod-secret-change-me-2026
-ADMIN_PASSWORD=trive-admin-2026-tectonic
+DATABASE_URL=file:./db/custom.db
+TELEGRAM_API_ID=YOUR_TELEGRAM_API_ID
+TELEGRAM_API_HASH=YOUR_TELEGRAM_API_HASH
+APP_SECRET=YOUR_APP_SECRET_MIN_32_CHARS
+ADMIN_PASSWORD=YOUR_ADMIN_PASSWORD
 NEXT_PUBLIC_APP_NAME=TriVE
 ```
 
